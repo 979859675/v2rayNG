@@ -425,6 +425,7 @@
     <string name="connection_test_testing_count">%d کانفیگ هونی آزمایش ابۊ…</string>
     <string name="connection_test_available">مووفق بی: منپیز %1$s تۊل کشی</string>
     <string name="server_test_delay_value">%1$d میلی‌سانیه</string>
+    <string name="server_test_delay_value_country">%1$d میلی‌سانیه (%2$s)</string>
     <string name="connection_test_error">منپیز و اینترنتن نجوست: %s</string>
     <string name="connection_test_fail">اینترنت من دسرس نؽ</string>
     <string name="connection_test_error_status_code">کود ختا: #%d</string>

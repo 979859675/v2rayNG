@@ -426,6 +426,7 @@
     <string name="connection_test_testing_count">%d konfiqurasiya yoxlanılır…</string>
     <string name="connection_test_available">Bağlantı %1$s ərzində uğurla quruldu</string>
     <string name="server_test_delay_value">%1$d ms</string>
+    <string name="server_test_delay_value_country">%1$d ms (%2$s)</string>
     <string name="connection_test_error">Bağlantı sınağı uğursuz oldu: %s</string>
     <string name="connection_test_fail">İnternet əlçatmazdır</string>
     <string name="connection_test_error_status_code">Xəta kodu: #%d</string>

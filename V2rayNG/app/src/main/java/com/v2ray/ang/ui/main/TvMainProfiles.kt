@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -256,9 +257,14 @@ private fun SubscriptionBadge(text: String) {
 }
 
 @Composable
-internal fun TvProfileTestResult(delayMillis: Long) {
+internal fun TvProfileTestResult(delayMillis: Long, country: String?) {
+    val countryLabel = formatTestCountry(country, LocalConfiguration.current.locales[0])
     Text(
-        if (delayMillis == 0L) "" else stringResource(R.string.server_test_delay_value, delayMillis),
+        when {
+            delayMillis == 0L -> ""
+            countryLabel == null -> stringResource(R.string.server_test_delay_value, delayMillis)
+            else -> stringResource(R.string.server_test_delay_value_country, delayMillis, countryLabel)
+        },
         style = MaterialTheme.typography.bodySmall,
         color = if (delayMillis < 0L) colorPingRed else colorPing,
         maxLines = 1,

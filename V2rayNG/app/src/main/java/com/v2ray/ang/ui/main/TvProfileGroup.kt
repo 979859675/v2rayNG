@@ -269,7 +269,7 @@ private fun TvProfileRow(
                 Spacer(Modifier.width(16.dp))
                 TvProfileType(row.typeDescription)
                 Spacer(Modifier.width(16.dp))
-                TvProfileTestResult(row.testDelayMillis)
+                TvProfileTestResult(row.testDelayMillis, row.testCountry)
             }
         }
         AppDivider(Modifier.padding(horizontal = 12.dp, vertical = 2.dp))

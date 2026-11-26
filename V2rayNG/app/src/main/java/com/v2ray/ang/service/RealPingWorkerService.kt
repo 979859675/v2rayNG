@@ -3,6 +3,7 @@ package com.v2ray.ang.service
 import android.content.Context
 import com.v2ray.ang.core.CoreConfigManager
 import com.v2ray.ang.core.CoreNativeManager
+import com.v2ray.ang.core.OutboundCountryProbe
 import com.v2ray.ang.dto.RealPingEvent
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isComplexType
@@ -38,6 +39,8 @@ internal object RealPingExecutionLimiter {
     }
 }
 
+private data class RealPingMeasurement(val delayMillis: Long, val country: String? = null)
+
 /**
  * Worker that runs a batch of real-ping tests independently.
  * Each batch owns its own CoroutineScope/dispatcher and can be cancelled separately.
@@ -62,9 +65,13 @@ class RealPingWorkerService(
             scope.launch {
                 runningCount.incrementAndGet()
                 try {
-                    val result = if (onlyTcp) startTcping(guid) else startRealPing(guid)
+                    val result = if (onlyTcp) {
+                        RealPingMeasurement(startTcping(guid))
+                    } else {
+                        startRealPing(guid)
+                    }
                     if (scope.isActive) {
-                        onEvent(RealPingEvent.Result(guid, result))
+                        onEvent(RealPingEvent.Result(guid, result.delayMillis, result.country))
                     }
                 } catch (_: Throwable) {
                     // ignore
@@ -104,10 +111,10 @@ class RealPingWorkerService(
         }
     }
 
-    private suspend fun startRealPing(guid: String): Long {
+    private suspend fun startRealPing(guid: String): RealPingMeasurement {
         val retFailure = -1L
 
-        val config = MmkvManager.decodeServerConfig(guid) ?: return retFailure
+        val config = MmkvManager.decodeServerConfig(guid) ?: return RealPingMeasurement(retFailure)
         if (!config.configType.isComplexType()
             && config.configType != EConfigType.HYSTERIA2
             && config.configType != EConfigType.WIREGUARD
@@ -119,16 +126,23 @@ class RealPingWorkerService(
             val port = config.serverPort.orEmpty().toInt()
             val tcpTime = SpeedtestManager.socketConnectTime(url, port, 1000)
             if (tcpTime <= -1L) {
-                return retFailure
+                return RealPingMeasurement(retFailure)
             }
         }
 
         val configResult = CoreConfigManager.getV2rayConfig4Speedtest(context, guid)
         if (!configResult.status) {
-            return retFailure
+            return RealPingMeasurement(retFailure)
         }
         return RealPingExecutionLimiter.run(config.configType) {
-            CoreNativeManager.measureOutboundDelay(configResult.content, SettingsManager.getDelayTestUrl())
+            val delay = CoreNativeManager.measureOutboundDelay(configResult.content, SettingsManager.getDelayTestUrl())
+            if (delay < 0) {
+                return@run RealPingMeasurement(delay)
+            }
+            // A successful real connection is probed through the same config to observe the
+            // actual egress IP's country; TCPing-only batches never reach this point.
+            val country = OutboundCountryProbe.probe(configResult.content, guid)
+            RealPingMeasurement(delay, country)
         }
     }
 

@@ -6,6 +6,7 @@ import com.v2ray.ang.extension.isComplexType
 import com.v2ray.ang.extension.moveItem
 import com.v2ray.ang.extension.nullIfBlank
 import com.v2ray.ang.handler.AngConfigManager
+import java.util.Locale
 
 internal data class ServerRowUiModel(
     val guid: String,
@@ -15,6 +16,7 @@ internal data class ServerRowUiModel(
     val typeDescription: String,
     val testDelayMillis: Long,
     val subscriptionBadge: String,
+    val testCountry: String? = null,
 )
 
 internal data class ServerGroupUiState(
@@ -51,7 +53,23 @@ internal fun buildServerRowUiModel(
         typeDescription = serverProtocolDescription(profile),
         testDelayMillis = server.testDelayMillis,
         subscriptionBadge = subscriptionRemarks.firstOrNull()?.toString().orEmpty(),
+        testCountry = server.testCountry,
     )
+}
+
+/**
+ * Turns the raw country observed by the egress-IP probe into a label for the app locale.
+ * A two-letter ISO code is localized (JP -> "Japan" / "日本"); any other non-empty value is
+ * already a real name reported by the IP API and is kept as-is. Unknown codes fall back to the code.
+ */
+internal fun formatTestCountry(raw: String?, locale: Locale): String? {
+    val value = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    if (value.length != 2 || !value.all { it.isLetter() }) {
+        return value
+    }
+    val code = value.uppercase(Locale.ROOT)
+    val display = Locale("", code).getDisplayCountry(locale)
+    return display.takeIf { it.isNotEmpty() && !it.equals(code, ignoreCase = true) } ?: code
 }
 
 private fun serverProtocolDescription(profile: ProfileItem): String {

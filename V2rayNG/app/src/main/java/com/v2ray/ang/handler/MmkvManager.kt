@@ -486,22 +486,24 @@ object MmkvManager {
     }
 
     /**
-     * Encodes the server test delay in milliseconds.
+     * Encodes the server test delay in milliseconds and the observed egress country.
      *
      * @param guid The server GUID.
      * @param testResult The test delay in milliseconds.
+     * @param testCountry Raw country observed by a real egress-IP probe, or null to clear it.
      */
-    fun encodeServerTestDelayMillis(guid: String, testResult: Long) {
+    fun encodeServerTestDelayMillis(guid: String, testResult: Long, testCountry: String? = null) {
         if (guid.isBlank()) {
             return
         }
         val aff = decodeServerAffiliationInfo(guid) ?: ServerAffiliationInfo()
         aff.testDelayMillis = testResult
+        aff.testCountry = testCountry
         serverAffStorage.encode(guid, JsonUtil.toJson(aff))
     }
 
     /**
-     * Clears all test delay results.
+     * Clears all test delay results and their egress-country observations.
      *
      * @param keys The list of server GUIDs.
      */
@@ -509,6 +511,7 @@ object MmkvManager {
         keys?.forEach { key ->
             decodeServerAffiliationInfo(key)?.let { aff ->
                 aff.testDelayMillis = 0
+                aff.testCountry = null
                 serverAffStorage.encode(key, JsonUtil.toJson(aff))
             }
         }

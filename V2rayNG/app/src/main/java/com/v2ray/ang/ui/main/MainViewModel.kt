@@ -50,27 +50,29 @@ internal fun locateProfileGroupId(subscriptionId: String, groups: List<GroupMapI
     return groupId.takeIf { id -> groups.any { it.id == id } }
 }
 
-private fun applyTestDelayResults(
+internal data class TestResultUpdate(val delayMillis: Long, val country: String?)
+
+internal fun applyTestDelayResults(
     servers: List<ServersCache>,
-    updates: Map<String, Long>,
+    updates: Map<String, TestResultUpdate>,
 ): List<ServersCache> = servers.map { server ->
-    val delayMillis = updates[server.guid]
-    if (delayMillis == null || delayMillis == server.testDelayMillis) {
+    val update = updates[server.guid]
+    if (update == null || (update.delayMillis == server.testDelayMillis && update.country == server.testCountry)) {
         server
     } else {
-        server.copy(testDelayMillis = delayMillis)
+        server.copy(testDelayMillis = update.delayMillis, testCountry = update.country)
     }
 }
 
-private fun applyTestDelayResultsToRows(
+internal fun applyTestDelayResultsToRows(
     rows: List<ServerRowUiModel>,
-    updates: Map<String, Long>,
+    updates: Map<String, TestResultUpdate>,
 ): List<ServerRowUiModel> = rows.map { row ->
-    val delayMillis = updates[row.guid]
-    if (delayMillis == null || delayMillis == row.testDelayMillis) {
+    val update = updates[row.guid]
+    if (update == null || (update.delayMillis == row.testDelayMillis && update.country == row.testCountry)) {
         row
     } else {
-        row.copy(testDelayMillis = delayMillis)
+        row.copy(testDelayMillis = update.delayMillis, testCountry = update.country)
     }
 }
 
@@ -210,15 +212,27 @@ class MainViewModel(
         if (pendingTestResults.isEmpty()) return
         if (testRequests.bulk?.id != request.id) return
 
-        val updates = cacheMutex.withLock {
-            val drained = pendingTestResults.toMap()
+        val drained = cacheMutex.withLock {
+            val snapshot = pendingTestResults.toMap()
             pendingTestResults.clear()
-            groupDataCache[request.groupId]?.let { cached ->
-                groupDataCache[request.groupId] = applyTestDelayResults(cached, drained)
-            }
-            drained
+            snapshot
         }
-        if (updates.isEmpty()) return
+        if (drained.isEmpty()) return
+
+        // The service persists the probed country before broadcasting the delay result; read it
+        // from the owning MMKV store off the main thread so a reload keeps the country as well.
+        val countries = withContext(ioDispatcher) {
+            drained.keys.associateWith { guid -> dataSource.decodeAffiliationInfo(guid)?.testCountry }
+        }
+        if (testRequests.bulk?.id != request.id) return
+        val updates = drained.mapValues { (guid, delayMillis) ->
+            TestResultUpdate(delayMillis, countries[guid])
+        }
+        cacheMutex.withLock {
+            groupDataCache[request.groupId]?.let { cached ->
+                groupDataCache[request.groupId] = applyTestDelayResults(cached, updates)
+            }
+        }
         if (testRequests.bulk?.id != request.id) return
         mutableServerGroupState(request.groupId).update { current ->
             current.copy(
@@ -363,7 +377,8 @@ class MainViewModel(
             ServersCache(
                 guid = guid,
                 profile = profile.copy(),
-                testDelayMillis = affiliation?.testDelayMillis ?: 0L
+                testDelayMillis = affiliation?.testDelayMillis ?: 0L,
+                testCountry = affiliation?.testCountry
             )
         }
 
@@ -862,12 +877,12 @@ class MainViewModel(
         mutableServerGroupState(groupId).update { current ->
             current.copy(
                 servers = current.servers.map { server ->
-                    if (server.testDelayMillis == 0L) server
-                    else server.copy(testDelayMillis = 0L)
+                    if (server.testDelayMillis == 0L && server.testCountry == null) server
+                    else server.copy(testDelayMillis = 0L, testCountry = null)
                 },
                 rows = current.rows.map { row ->
-                    if (row.testDelayMillis == 0L) row
-                    else row.copy(testDelayMillis = 0L)
+                    if (row.testDelayMillis == 0L && row.testCountry == null) row
+                    else row.copy(testDelayMillis = 0L, testCountry = null)
                 }
             )
         }
@@ -891,8 +906,8 @@ class MainViewModel(
                 cacheMutex.withLock {
                     groupDataCache[groupId]?.let { cached ->
                         groupDataCache[groupId] = cached.map { server ->
-                            if (server.guid !in resetGuids || server.testDelayMillis == 0L) server
-                            else server.copy(testDelayMillis = 0L)
+                            if (server.guid !in resetGuids || (server.testDelayMillis == 0L && server.testCountry == null)) server
+                            else server.copy(testDelayMillis = 0L, testCountry = null)
                         }
                     }
                 }

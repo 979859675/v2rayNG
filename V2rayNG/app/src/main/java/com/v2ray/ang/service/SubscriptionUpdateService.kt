@@ -203,7 +203,7 @@ class SubscriptionUpdateService : Service() {
             }
 
             is RealPingEvent.Result -> {
-                MmkvManager.encodeServerTestDelayMillis(event.guid, event.delayMillis)
+                MmkvManager.encodeServerTestDelayMillis(event.guid, event.delayMillis, event.country)
             }
 
             is RealPingEvent.Finish -> {

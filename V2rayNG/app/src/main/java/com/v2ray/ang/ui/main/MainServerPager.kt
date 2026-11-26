@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -312,10 +313,11 @@ private fun ServerListItem(
     doubleColumnDisplay: Boolean,
     actions: ServerRowActions
 ) {
-    val testResult = if (row.testDelayMillis == 0L) {
-        ""
-    } else {
-        stringResource(R.string.server_test_delay_value, row.testDelayMillis)
+    val countryLabel = formatTestCountry(row.testCountry, LocalConfiguration.current.locales[0])
+    val testResult = when {
+        row.testDelayMillis == 0L -> ""
+        countryLabel == null -> stringResource(R.string.server_test_delay_value, row.testDelayMillis)
+        else -> stringResource(R.string.server_test_delay_value_country, row.testDelayMillis, countryLabel)
     }
     val selectedStateDescription = if (isSelected) {
         stringResource(R.string.acc_selected_server)

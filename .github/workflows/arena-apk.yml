@@ -60,11 +60,16 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Build debug APK
+      - name: Validate unit tests and Kotlin compilation
         run: |
           cd V2rayNG
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           chmod +x gradlew
+          ./gradlew :app:testPlaystoreDebugUnitTest :app:compilePlaystoreDebugKotlin --stacktrace
+
+      - name: Build debug APK
+        run: |
+          cd V2rayNG
           ./gradlew assemblePlaystoreDebug --stacktrace
 
       - name: Collect APKs

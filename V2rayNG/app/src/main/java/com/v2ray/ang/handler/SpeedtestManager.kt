@@ -53,13 +53,21 @@ object SpeedtestManager {
         return -1
     }
 
-    fun getRemoteIPInfo(): RemoteEndpointInfo? {
+    /** Probes the egress IP through the currently running core's local HTTP port. */
+    fun getRemoteIPInfo(): RemoteEndpointInfo? = getRemoteIPInfo(
+        httpPort = SettingsManager.getHttpPort(),
+        proxyUsername = SettingsManager.getSocksUsername(),
+        proxyPassword = SettingsManager.getSocksPassword(),
+    )
+
+    /**
+     * Probes the egress IP through an explicit local HTTP port.
+     * Real-ping batches call this with the isolated probe core's port instead of the active daemon's port.
+     */
+    fun getRemoteIPInfo(httpPort: Int, proxyUsername: String? = null, proxyPassword: String? = null): RemoteEndpointInfo? {
         val url = MmkvManager.decodeSettingsString(AppConfig.PREF_IP_API_URL)
             .takeIf { !it.isNullOrBlank() } ?: AppConfig.IP_API_URL
 
-        val proxyUsername = SettingsManager.getSocksUsername()
-        val proxyPassword = SettingsManager.getSocksPassword()
-        val httpPort = SettingsManager.getHttpPort()
         if (httpPort == 0) return null
         val content = HttpUtil.getUrlContent(
             UrlContentRequest(
