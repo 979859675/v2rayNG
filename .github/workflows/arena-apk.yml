@@ -1,0 +1,96 @@
+name: Build APK (Arena)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - arena/736defd4-v2rayng
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          submodules: 'recursive'
+          fetch-depth: '0'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+          cmdline-tools-version: '14742923'
+          packages: 'platforms;android-37.1 build-tools;37.0.0 platform-tools'
+
+      - name: Install NDK
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            --channel=0 \
+            --install "ndk;30.0.16248370"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/30.0.16248370" >> $GITHUB_ENV
+          sed -i '10i\
+          \
+              ndkVersion = "30.0.16248370"' V2rayNG/app/build.gradle.kts
+
+      - name: Build libhevtun
+        run: bash compile-hevtun.sh
+
+      - name: Copy libhevtun
+        run: cp -r libs V2rayNG/app
+
+      - name: Fetch AndroidLibXrayLite tag
+        run: |
+          pushd AndroidLibXrayLite
+          echo "CURRENT_TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+          popd
+
+      - name: Download libv2ray
+        uses: robinraju/release-downloader@v1.13
+        with:
+          repository: '2dust/AndroidLibXrayLite'
+          tag: ${{ env.CURRENT_TAG }}
+          fileName: 'libv2ray.aar'
+          out-file-path: V2rayNG/app/libs/
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.3.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build debug APK
+        run: |
+          cd V2rayNG
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          chmod +x gradlew
+          ./gradlew assemblePlaystoreDebug --stacktrace
+
+      - name: Collect APKs
+        run: |
+          mkdir -p apks
+          find V2rayNG/app/build/outputs/apk -name '*.apk' -exec cp {} apks/ \;
+          ls -lh apks
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: v2rayng-apks
+          path: apks/*.apk
+          if-no-files-found: error
+
+      - name: Publish APKs as release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="arena-apk-${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" apks/*.apk \
+            --title "v2rayNG APK (branch build)" \
+            --notes "Automated Playstore debug build from ${GITHUB_REF_NAME} at ${GITHUB_SHA}." \
+            --prerelease
+          echo "RELEASE_TAG=$tag" >> $GITHUB_ENV
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/tag/$tag"
