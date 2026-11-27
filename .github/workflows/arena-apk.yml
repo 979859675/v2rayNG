@@ -2,9 +2,6 @@ name: Build APK (Arena)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - arena/736defd4-v2rayng
 
 permissions:
   contents: write
