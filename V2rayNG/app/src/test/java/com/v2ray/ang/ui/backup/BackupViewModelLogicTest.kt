@@ -9,7 +9,7 @@ class BackupViewModelLogicTest {
     fun `valid backup count and successful zip produce the export path`() {
         assertEquals(
             Pair(true, "/cache/backup.zip"),
-            backupFileResult(backupCount = 5, zipCreated = true, zipPath = "/cache/backup.zip")
+            backupFileResult(backupCount = 5L, zipCreated = true, zipPath = "/cache/backup.zip")
         )
     }
 
@@ -17,7 +17,7 @@ class BackupViewModelLogicTest {
     fun `empty backup count is a failure with no export path`() {
         assertEquals(
             Pair(false, ""),
-            backupFileResult(backupCount = 0, zipCreated = true, zipPath = "/cache/backup.zip")
+            backupFileResult(backupCount = 0L, zipCreated = true, zipPath = "/cache/backup.zip")
         )
     }
 
@@ -25,7 +25,7 @@ class BackupViewModelLogicTest {
     fun `negative backup count is an invalid result`() {
         assertEquals(
             Pair(false, ""),
-            backupFileResult(backupCount = -1, zipCreated = true, zipPath = "/cache/backup.zip")
+            backupFileResult(backupCount = -1L, zipCreated = true, zipPath = "/cache/backup.zip")
         )
     }
 
@@ -33,7 +33,7 @@ class BackupViewModelLogicTest {
     fun `zip failure is reported without a partial export path`() {
         assertEquals(
             Pair(false, ""),
-            backupFileResult(backupCount = 5, zipCreated = false, zipPath = "/cache/backup.zip")
+            backupFileResult(backupCount = 5L, zipCreated = false, zipPath = "/cache/backup.zip")
         )
     }
 }

@@ -24,7 +24,7 @@ import java.util.Locale
 
 /** Pure result mapping for MMKV backup count and zip creation, exercised by JVM tests. */
 internal fun backupFileResult(
-    backupCount: Int,
+    backupCount: Long,
     zipCreated: Boolean,
     zipPath: String,
 ): Pair<Boolean, String> = if (backupCount > 0 && zipCreated) {
