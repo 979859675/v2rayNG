@@ -59,4 +59,12 @@ class UtilsTest {
         assertFalse(Utils.isIpInCidr("192.168.1.1", "invalid-cidr"))
     }
 
+    @Test
+    fun test_renamedApplicationIdStillUsesXrayCore() {
+        assertTrue(BuildConfig.APPLICATION_ID.startsWith("com.v2ray.ang.edt"))
+        assertFalse(BuildConfig.APPLICATION_ID == "com.v2ray.ang")
+        assertEquals(BuildConfig.APPLICATION_ID, AppConfig.ANG_PACKAGE)
+        assertTrue(Utils.isXray())
+    }
+
 }

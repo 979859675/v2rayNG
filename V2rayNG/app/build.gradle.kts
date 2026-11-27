@@ -6,6 +6,7 @@ plugins {
 }
 
 android {
+    // Source/R/component namespace remains upstream; applicationId is the installable package name.
     namespace = "com.v2ray.ang"
     compileSdk {
         version = release(37) {
@@ -14,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.v2ray.ang"
+        applicationId = "com.v2ray.ang.edt"
         minSdk = 24
         targetSdk = 37
         versionCode = 762
