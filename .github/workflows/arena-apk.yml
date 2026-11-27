@@ -63,6 +63,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Tune Gradle wrapper download
+        run: |
+          sed -i \
+            -e 's/^networkTimeout=.*/networkTimeout=60000/' \
+            -e 's/^retries=.*/retries=3/' \
+            -e 's/^retryBackOffMs=.*/retryBackOffMs=2000/' \
+            V2rayNG/gradle/wrapper/gradle-wrapper.properties
+
       - name: Validate unit tests and Kotlin compilation
         run: |
           cd V2rayNG

@@ -145,7 +145,7 @@ class BackupActivity : HelperBaseComponentActivity() {
                     }
                 }
                 withContext(Dispatchers.Main.immediate) {
-                    toastSuccess(R.string.backup_export_success)
+                    this@BackupActivity.toastSuccess(R.string.backup_export_success)
                 }
             } catch (e: Exception) {
                 LogUtil.e(
@@ -154,7 +154,7 @@ class BackupActivity : HelperBaseComponentActivity() {
                     e
                 )
                 withContext(Dispatchers.Main.immediate) {
-                    toastError(R.string.toast_failure)
+                    this@BackupActivity.toastError(R.string.toast_failure)
                 }
             } finally {
                 cacheFile.delete()
