@@ -2,6 +2,7 @@ package com.v2ray.ang.ui.main
 
 import com.v2ray.ang.dto.SubscriptionUpdateResult
 import com.v2ray.ang.dto.TestServiceMessage
+import com.v2ray.ang.dto.entities.FavoriteFolder
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.ServerAffiliationInfo
 import com.v2ray.ang.dto.entities.SubscriptionCache
@@ -31,6 +32,9 @@ interface MainDataSource : Closeable {
     fun getServerGuidList(groupId: String): List<String>
     fun decodeServerConfig(guid: String): ProfileItem?
     fun decodeAffiliationInfo(guid: String): ServerAffiliationInfo?
+
+    fun getFavoriteFolders(): List<FavoriteFolder>
+    fun saveFavoriteFolders(folders: List<FavoriteFolder>): Boolean
 
     fun moveServerInGroup(groupId: String, fromGuid: String, toGuid: String): List<String>?
 

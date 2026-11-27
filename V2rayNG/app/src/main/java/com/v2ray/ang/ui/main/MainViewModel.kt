@@ -103,6 +103,7 @@ class MainViewModel(
 
     // ---------- Groups & cache ----------
     private val cacheMutex = Mutex()
+    private val favoriteFolderMutex = Mutex()
     private val groupDataCache = mutableMapOf<String, List<ServersCache>>()
     private val groupUiFlows = ConcurrentHashMap<String, MutableStateFlow<ServerGroupUiState>>()
     private val groupServerFlows = ConcurrentHashMap<String, StateFlow<List<ServersCache>>>()
@@ -307,8 +308,8 @@ class MainViewModel(
             MainAction.RemoveDuplicateServers -> removeDuplicateServerAsync()
             MainAction.RemoveInvalidServers -> removeInvalidServerAsync()
             MainAction.SortByTestResults -> sortByTestResultsAsync()
-            MainAction.UpdateSubscriptions -> importConfigViaSub(uiState.value.selectedGroupId)
-            is MainAction.UpdateGroupSubscription -> importConfigViaSub(action.groupId)
+            MainAction.UpdateSubscriptions -> importConfigViaSub(storageGroupId(uiState.value.selectedGroupId))
+            is MainAction.UpdateGroupSubscription -> importConfigViaSub(storageGroupId(action.groupId))
             MainAction.ExportAll -> exportAllAsync()
             is MainAction.SelectGroup -> subscriptionIdChanged(action.groupId)
             is MainAction.SelectServer -> updateSelectedGuid(action.guid)
@@ -326,6 +327,11 @@ class MainViewModel(
                 _uiState.update { it.copy(shareQRCodeBitmap = null) }
             }
 
+            is MainAction.CreateFavoriteFolder -> mutateFavoriteFolders("create", action.id, action)
+            is MainAction.RenameFavoriteFolder -> mutateFavoriteFolders("rename", action.id, action)
+            is MainAction.DeleteFavoriteFolder -> mutateFavoriteFolders("delete", action.id, action)
+            is MainAction.SetServerFavoriteFolders -> mutateFavoriteFolders("set server folders", action.guid, action)
+
             MainAction.Exit,
             MainAction.ToggleService,
             MainAction.TestCurrentServer,
@@ -339,6 +345,41 @@ class MainViewModel(
             is MainAction.ShareClipboard,
             is MainAction.ShareFullContent -> {
                 // Handled by Activity via its onAction lambda
+            }
+        }
+    }
+
+    /**
+     * Folder membership is stored as one MMKV value. Serialize changes by domain ID so two
+     * rapid UI actions cannot overwrite each other, then publish the new state through the
+     * ViewModel and reload every virtual group from storage.
+     */
+    private fun mutateFavoriteFolders(operation: String, stableId: String, action: MainAction) {
+        viewModelScope.launch(ioDispatcher) {
+            favoriteFolderMutex.withLock {
+                try {
+                    val current = dataSource.getFavoriteFolders()
+                    val next = applyFavoriteFolderAction(current, action)
+                    if (!shouldPersistFavoriteFolders(current, next)) return@withLock
+                    val saved = dataSource.saveFavoriteFolders(next)
+                    if (!saved) {
+                        LogUtil.e(
+                            AppConfig.TAG,
+                            "Failed to save favorite folders after $operation: $stableId"
+                        )
+                        toastError(R.string.toast_failure)
+                        return@withLock
+                    }
+                    val published = favoriteFoldersAfterSave(current, next, saved)
+                    _uiState.update { it.copy(favoriteFolders = published) }
+                    setupGroupTab(forceRefresh = true).join()
+                    toastSuccess(R.string.toast_success)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    LogUtil.e(AppConfig.TAG, "Failed to $operation favorite folder: $stableId", error)
+                    toastError(R.string.toast_failure)
+                }
             }
         }
     }
@@ -479,12 +520,20 @@ class MainViewModel(
                 if (forceRefresh) {
                     cacheMutex.withLock { groupDataCache.clear() }
                 }
-                val groups = dataSource.getSubscriptions().map {
+                val subscriptionGroups = dataSource.getSubscriptions().map {
                     GroupMapItem(
                         id = it.guid,
                         remarks = it.subscription.remarks,
                     )
                 }
+                val favoriteFolders = dataSource.getFavoriteFolders()
+                val favoriteGroups = favoriteFolders.map { folder ->
+                    GroupMapItem(
+                        id = favoriteGroupId(folder.id),
+                        remarks = dataSource.getString(R.string.favorite_folder_tab, folder.name),
+                    )
+                }
+                val groups = subscriptionGroups + favoriteGroups
                 val selectedGroup = resolveSelectedGroup(groups)
                 val validIds = groups.mapTo(HashSet()) { it.id }
                 groupUiFlows.keys.removeAll { it !in validIds }
@@ -496,6 +545,7 @@ class MainViewModel(
                         groups = groups,
                         selectedGroupId = selectedGroup,
                         selectedGuid = dataSource.getSelectServer(),
+                        favoriteFolders = favoriteFolders,
                     )
                 }
                 groups.forEach { mutableServerGroupState(it.id) }
@@ -541,7 +591,7 @@ class MainViewModel(
             withContext(ioDispatcher) {
                 try {
                     val (count, countSub) = dataSource.importBatchConfig(
-                        configText, uiState.value.selectedGroupId, true
+                        configText, storageGroupId(uiState.value.selectedGroupId), true
                     )
                     when {
                         count > 0 -> {
@@ -731,10 +781,10 @@ class MainViewModel(
     }
 
     private fun sortByTestResultsInternal() {
-        val subs = if (uiState.value.selectedGroupId.isEmpty()) {
+        val subs = if (storageGroupId(uiState.value.selectedGroupId).isEmpty()) {
             dataSource.getSubsList()
         } else {
-            listOf(uiState.value.selectedGroupId)
+            listOf(storageGroupId(uiState.value.selectedGroupId))
         }
         subs.forEach { dataSource.sortByTestResultsForSub(it) }
     }
@@ -887,10 +937,13 @@ class MainViewModel(
             )
         }
         val request = testRequests.beginBulk(groupId)
+        // A favorite folder has no subscription index, so the worker must receive exact GUIDs
+        // and must not run subscription-level auto-cleanup/sort with a virtual group ID.
+        val virtualFolder = isFavoriteGroupId(groupId)
         val message = TestServiceMessage(
             key = AppConfig.MSG_MEASURE_CONFIG_START,
-            subscriptionId = groupId,
-            serverGuids = if (uiState.value.searchQuery.isNotEmpty()) serverGuids else emptyList(),
+            subscriptionId = storageGroupId(groupId),
+            serverGuids = if (virtualFolder || uiState.value.searchQuery.isNotEmpty()) serverGuids else emptyList(),
             onlyTcp = onlyTcp
         )
         _uiState.update {

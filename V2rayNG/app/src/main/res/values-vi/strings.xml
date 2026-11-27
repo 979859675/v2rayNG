@@ -592,4 +592,15 @@
     <string name="action_more">Thêm</string>
     <string name="action_clear">Xoá</string>
     <string name="connection_connected_tv">Đã kết nối</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">Thư mục yêu thích</string>
+    <string name="favorite_folder_create">Thư mục mới</string>
+    <string name="favorite_folder_name">Tên thư mục</string>
+    <string name="favorite_folder_rename">Đổi tên thư mục</string>
+    <string name="favorite_folder_delete">Xóa thư mục</string>
+    <string name="favorite_folder_delete_confirm">Xóa thư mục «%1$s»? Các nút bên trong không bị xóa.</string>
+    <string name="favorite_folder_empty">Chưa có thư mục yêu thích. Hãy tạo một thư mục để nhóm các nút.</string>
+    <string name="favorite_add_to_folder">Thêm vào thư mục yêu thích</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

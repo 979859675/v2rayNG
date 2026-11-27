@@ -19,12 +19,15 @@ import com.v2ray.ang.AppConfig.TAG
 import com.v2ray.ang.BuildConfig
 import com.v2ray.ang.dto.entities.AssetUrlCache
 import com.v2ray.ang.dto.entities.AssetUrlItem
+import com.v2ray.ang.dto.entities.FavoriteFolder
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.RulesetItem
 import com.v2ray.ang.dto.entities.ServerAffiliationInfo
 import com.v2ray.ang.dto.entities.SubscriptionCache
 import com.v2ray.ang.dto.entities.SubscriptionItem
 import com.v2ray.ang.dto.entities.WebDavConfig
+import com.v2ray.ang.dto.entities.decodeFavoriteFolders as decodeFavoriteFoldersJson
+import com.v2ray.ang.dto.entities.pruneFavoriteFolders
 import com.v2ray.ang.extension.moveGuid
 import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.Utils
@@ -50,6 +53,7 @@ object MmkvManager {
     private const val KEY_SUB_SERVER_PREFIX = "SUB_SERVERS_"
     private const val KEY_SUB_IDS = "SUB_IDS"
     private const val KEY_WEBDAV_CONFIG = "WEBDAV_CONFIG"
+    private const val KEY_FAVORITE_FOLDERS = "FAVORITE_FOLDERS"
 
     private val recoveryHandler = object : MMKVHandler {
         override fun onMMKVCRCCheckFail(mmapID: String) =
@@ -225,6 +229,19 @@ object MmkvManager {
         } else {
             JsonUtil.fromJsonSafe(json, Array<String>::class.java)?.toMutableList() ?: mutableListOf()
         }
+    }
+
+    /**
+     * User-created favorite folders, with GUIDs of profiles deleted elsewhere pruned out.
+     * Returns a value (not a mutable MMKV-backed snapshot) so UI updates are explicit.
+     */
+    fun decodeFavoriteFolders(): List<FavoriteFolder> = withProfileIndexLock {
+        val validGuids = decodeAllServerList().toSet()
+        pruneFavoriteFolders(decodeFavoriteFoldersJson(mainStorage.decodeString(KEY_FAVORITE_FOLDERS)), validGuids)
+    }
+
+    fun encodeFavoriteFolders(folders: List<FavoriteFolder>): Boolean = withProfileIndexLock {
+        mainStorage.encode(KEY_FAVORITE_FOLDERS, JsonUtil.toJson(folders))
     }
 
     /**

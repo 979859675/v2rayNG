@@ -46,6 +46,7 @@ internal fun TvMainDialogs(
     onAction: (MainAction) -> Unit,
     onEdit: (MainAction.EditServer, TvMainFocusTarget.Profile) -> Unit,
     onRestoreFocus: (TvMainFocusTarget) -> Unit,
+    onFavorite: (String, String, TvMainFocusTarget.Profile) -> Unit,
     content: @Composable (TvMainDialogActions) -> Unit
 ) {
     var bulkDelete by remember { mutableStateOf<TvBulkDeleteTarget?>(null) }
@@ -76,19 +77,27 @@ internal fun TvMainDialogs(
             { stringResource(it.labelRes) },
             { action ->
                 shareTarget = null
-                action.dispatch(target.origin.guid, target.profile, { selectedAction ->
-                    when (selectedAction) {
-                        is MainAction.EditServer -> onEdit(selectedAction, target.origin)
-                        is MainAction.ShareQRCode -> {
-                            qrOrigin = target.origin
-                            onAction(selectedAction)
+                action.dispatch(
+                    guid = target.origin.guid,
+                    profile = target.profile,
+                    onAction = { selectedAction ->
+                        when (selectedAction) {
+                            is MainAction.EditServer -> onEdit(selectedAction, target.origin)
+                            is MainAction.ShareQRCode -> {
+                                qrOrigin = target.origin
+                                onAction(selectedAction)
+                            }
+                            else -> {
+                                onAction(selectedAction)
+                                onRestoreFocus(target.origin)
+                            }
                         }
-                        else -> {
-                            onAction(selectedAction)
-                            onRestoreFocus(target.origin)
-                        }
-                    }
-                }) { _, name -> deleteTarget = TvDeleteTarget(name, target.origin, target.neighbor) }
+                    },
+                    onRemove = { _, name ->
+                        deleteTarget = TvDeleteTarget(name, target.origin, target.neighbor)
+                    },
+                    onFavorite = { guid, name -> onFavorite(guid, name, target.origin) }
+                )
             },
             {
                 shareTarget = null

@@ -12,11 +12,12 @@ class MainImportMenuTest {
     }
 
     @Test
-    fun regularShareMenuContainsOnlyShareActions() {
+    fun regularShareMenuIncludesShareAndFavoriteActions() {
         val expected = listOf(
             ServerMenuAction.ShareQRCode,
             ServerMenuAction.ShareClipboard,
             ServerMenuAction.ShareFullContent,
+            ServerMenuAction.Favorite,
         )
         assertEquals(expected, serverMenuActions(isComplexProfile = false, includeManagementActions = false))
     }
@@ -30,9 +31,9 @@ class MainImportMenuTest {
     }
 
     @Test
-    fun complexShareMenuContainsOnlyFullContent() {
+    fun complexShareMenuKeepsFullContentAndFavorite() {
         assertEquals(
-            listOf(ServerMenuAction.ShareFullContent),
+            listOf(ServerMenuAction.ShareFullContent, ServerMenuAction.Favorite),
             serverMenuActions(isComplexProfile = true, includeManagementActions = false),
         )
     }
@@ -41,6 +42,7 @@ class MainImportMenuTest {
     fun complexMoreMenuRetainsManagementActions() {
         val expected = listOf(
             ServerMenuAction.ShareFullContent,
+            ServerMenuAction.Favorite,
             ServerMenuAction.Edit,
             ServerMenuAction.Delete,
         )

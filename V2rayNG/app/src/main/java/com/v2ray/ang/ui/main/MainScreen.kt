@@ -67,6 +67,10 @@ fun MainScreen(
     }
 
     var shareTarget by remember { mutableStateOf<Triple<String, ProfileItem, Boolean>?>(null) }
+    var favoriteTarget by rememberSaveable(stateSaver = FavoriteFolderTarget.Saver) {
+        mutableStateOf<FavoriteFolderTarget?>(null)
+    }
+    var showFavoriteFolders by rememberSaveable { mutableStateOf(false) }
     val removeServer: (String, String) -> Unit = { guid, profileName ->
         if (confirmRemove) {
             showRemoveConfirm = ServerDeleteTarget(guid, profileName)
@@ -128,6 +132,23 @@ fun MainScreen(
             onDismiss = { shareTarget = null },
             onAction = onAction,
             onRemove = removeServer,
+            onFavorite = { targetGuid, name -> favoriteTarget = FavoriteFolderTarget(targetGuid, name) },
+        )
+    }
+    if (favoriteTarget != null) {
+        FavoriteFolderPickerDialog(
+            guid = favoriteTarget!!.guid,
+            profileName = favoriteTarget!!.name,
+            folders = uiState.favoriteFolders,
+            onAction = onAction,
+            onDismiss = { favoriteTarget = null }
+        )
+    }
+    if (showFavoriteFolders) {
+        FavoriteFolderManagerDialog(
+            folders = uiState.favoriteFolders,
+            onAction = onAction,
+            onDismiss = { showFavoriteFolders = false }
         )
     }
     if (shareQRCodeBitmap != null) {
@@ -173,6 +194,7 @@ fun MainScreen(
                             MainMoreMenuAction.TestAll -> onAction(MainAction.TestAllServers)
                             MainMoreMenuAction.TestAllRealPing -> onAction(MainAction.TestRealAllServers)
                             MainMoreMenuAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
+                            MainMoreMenuAction.FavoriteFolders -> showFavoriteFolders = true
                         }
                     }
                 )

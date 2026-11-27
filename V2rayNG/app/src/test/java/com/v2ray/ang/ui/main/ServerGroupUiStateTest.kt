@@ -42,6 +42,7 @@ class ServerGroupUiStateTest {
         assertFalse(filtered.canReorder("group", ""))
         assertNull(filtered.moveServer("a", "b"))
         assertFalse(initial.canReorder("", ""))
+        assertFalse(initial.canReorder(favoriteGroupId("folder-id"), ""))
         assertTrue(initial.canReorder("group", ""))
     }
 }

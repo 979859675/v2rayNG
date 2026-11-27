@@ -91,7 +91,8 @@ object SpeedtestManager {
             ipInfo.country_code,
             ipInfo.country,
             ipInfo.countryCode,
-            ipInfo.location?.country_code
+            ipInfo.location?.country_code,
+            ipInfo.country_name
         ).firstOrNull { !it.isNullOrBlank() }
 
         return RemoteEndpointInfo(

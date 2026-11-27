@@ -592,4 +592,15 @@
     <string name="action_more">更多</string>
     <string name="action_clear">清除</string>
     <string name="connection_connected_tv">已連線</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">收藏資料夾</string>
+    <string name="favorite_folder_create">新增資料夾</string>
+    <string name="favorite_folder_name">資料夾名稱</string>
+    <string name="favorite_folder_rename">重新命名資料夾</string>
+    <string name="favorite_folder_delete">刪除資料夾</string>
+    <string name="favorite_folder_delete_confirm">刪除資料夾「%1$s」？其中的節點不會被刪除。</string>
+    <string name="favorite_folder_empty">還沒有收藏資料夾。建立一個來分組節點。</string>
+    <string name="favorite_add_to_folder">加入收藏資料夾</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

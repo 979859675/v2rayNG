@@ -602,4 +602,15 @@
     <string name="action_more">المزيد</string>
     <string name="action_clear">مسح</string>
     <string name="connection_connected_tv">متصل</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">المجلدات المفضلة</string>
+    <string name="favorite_folder_create">مجلد جديد</string>
+    <string name="favorite_folder_name">اسم المجلد</string>
+    <string name="favorite_folder_rename">إعادة تسمية المجلد</string>
+    <string name="favorite_folder_delete">حذف المجلد</string>
+    <string name="favorite_folder_delete_confirm">حذف المجلد «%1$s»؟ لن تُحذف العقد بداخله.</string>
+    <string name="favorite_folder_empty">لا توجد مجلدات مفضلة بعد. أنشئ مجلدًا لتجميع العقد.</string>
+    <string name="favorite_add_to_folder">إضافة إلى مجلد مفضل</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

@@ -594,4 +594,15 @@
     <string name="action_more">আরও</string>
     <string name="action_clear">সাফ করুন</string>
     <string name="connection_connected_tv">সংযুক্ত</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">পছন্দের ফোল্ডার</string>
+    <string name="favorite_folder_create">নতুন ফোল্ডার</string>
+    <string name="favorite_folder_name">ফোল্ডারের নাম</string>
+    <string name="favorite_folder_rename">ফোল্ডারের নাম বদলান</string>
+    <string name="favorite_folder_delete">ফোল্ডার মুছুন</string>
+    <string name="favorite_folder_delete_confirm">«%1$s» ফোল্ডারটি মুছবেন? এর মধ্যে থাকা নোডগুলি মুছে যাবে না।</string>
+    <string name="favorite_folder_empty">এখনও কোনো পছন্দের ফোল্ডার নেই। নোডগুলি গুছিয়ে রাখতে একটি ফোল্ডার তৈরি করুন।</string>
+    <string name="favorite_add_to_folder">পছন্দের ফোল্ডারে যোগ করুন</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

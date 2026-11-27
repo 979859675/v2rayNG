@@ -84,7 +84,8 @@ internal fun TvMainTopBar(
     onOpenDrawer: () -> Unit,
     onMoveDown: () -> Boolean,
     onAction: (MainAction) -> Unit,
-    onBulkDelete: (TvBulkDeleteTarget) -> Unit
+    onBulkDelete: (TvBulkDeleteTarget) -> Unit,
+    onFavoriteFolders: () -> Unit
 ) {
     val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val navBarHeight = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -199,7 +200,7 @@ internal fun TvMainTopBar(
                                     painterResource(R.drawable.ic_more_vert_24dp), stringResource(R.string.action_more), focus
                                 ) { close ->
                                     tvMoreMenuActions.forEach { item ->
-                                        TvMenuItem(item.labelRes) { close(); item.dispatch(onAction, onBulkDelete) }
+                                        TvMenuItem(item.labelRes) { close(); item.dispatch(onAction, onBulkDelete, onFavoriteFolders) }
                                     }
                                     TvMenuItem(R.string.action_exit) { close(); onAction(MainAction.Exit) }
                                 }
@@ -230,7 +231,11 @@ private fun TvMenuItem(labelRes: Int, onClick: () -> Unit) {
     )
 }
 
-private fun MainMoreMenuAction.dispatch(onAction: (MainAction) -> Unit, onBulkDelete: (TvBulkDeleteTarget) -> Unit) {
+private fun MainMoreMenuAction.dispatch(
+    onAction: (MainAction) -> Unit,
+    onBulkDelete: (TvBulkDeleteTarget) -> Unit,
+    onFavoriteFolders: () -> Unit,
+) {
     when (this) {
         MainMoreMenuAction.RestartService, MainMoreMenuAction.DeleteAll -> Unit // Not shown in the TV menu.
         MainMoreMenuAction.DeleteDuplicate -> onBulkDelete(TvBulkDeleteTarget.Duplicate)
@@ -241,5 +246,6 @@ private fun MainMoreMenuAction.dispatch(onAction: (MainAction) -> Unit, onBulkDe
         MainMoreMenuAction.TestAll -> onAction(MainAction.TestAllServers)
         MainMoreMenuAction.TestAllRealPing -> onAction(MainAction.TestRealAllServers)
         MainMoreMenuAction.UpdateSubscriptions -> onAction(MainAction.UpdateSubscriptions)
+        MainMoreMenuAction.FavoriteFolders -> onFavoriteFolders()
     }
 }

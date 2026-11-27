@@ -12,6 +12,7 @@ import com.v2ray.ang.dto.ConnectionTestResult
 import com.v2ray.ang.dto.RealPingResult
 import com.v2ray.ang.dto.SubscriptionUpdateResult
 import com.v2ray.ang.dto.TestServiceMessage
+import com.v2ray.ang.dto.entities.FavoriteFolder
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.ServerAffiliationInfo
 import com.v2ray.ang.dto.entities.SubscriptionCache
@@ -147,18 +148,31 @@ class MainRepository(
     override fun getSubscriptionItem(id: String): SubscriptionItem? =
         MmkvManager.decodeSubscription(id)
 
-    override fun getServerGuidList(groupId: String): List<String> =
-        if (groupId.isEmpty()) {
+    override fun getServerGuidList(groupId: String): List<String> {
+        val folderId = favoriteFolderId(groupId)
+        if (folderId != null) {
+            return MmkvManager.decodeFavoriteFolders()
+                .firstOrNull { it.id == folderId }
+                ?.serverGuids
+                .orEmpty()
+        }
+        return if (groupId.isEmpty()) {
             MmkvManager.decodeAllServerList()
         } else {
             MmkvManager.decodeServerList(groupId)
         }
+    }
 
     override fun decodeServerConfig(guid: String): ProfileItem? =
         MmkvManager.decodeServerConfig(guid)
 
     override fun decodeAffiliationInfo(guid: String): ServerAffiliationInfo? =
         MmkvManager.decodeServerAffiliationInfo(guid)
+
+    override fun getFavoriteFolders(): List<FavoriteFolder> = MmkvManager.decodeFavoriteFolders()
+
+    override fun saveFavoriteFolders(folders: List<FavoriteFolder>): Boolean =
+        MmkvManager.encodeFavoriteFolders(folders)
 
     override fun moveServerInGroup(groupId: String, fromGuid: String, toGuid: String): List<String>? =
         MmkvManager.moveServerInGroup(groupId, fromGuid, toGuid)

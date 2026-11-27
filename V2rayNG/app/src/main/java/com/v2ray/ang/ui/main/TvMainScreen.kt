@@ -104,6 +104,10 @@ internal fun TvMainScreen(
         mutableStateOf<TvMainFocusTarget.DrawerOrigin?>(null)
     }
     var focusToRestore by remember { mutableStateOf<TvMainFocusTarget?>(null) }
+    var showFavoriteFolders by rememberSaveable { mutableStateOf(false) }
+    var favoriteTarget by rememberSaveable(stateSaver = FavoriteFolderTarget.Saver) {
+        mutableStateOf<FavoriteFolderTarget?>(null)
+    }
     fun openDrawer(origin: TvMainFocusTarget.DrawerOrigin) {
         drawerOrigin = origin
         drawerState.setValue(TvDrawerValue.Open)
@@ -174,12 +178,39 @@ internal fun TvMainScreen(
         focusToRestore = null
     }
 
+    val favoritePicker = favoriteTarget
+    if (favoritePicker != null) {
+        FavoriteFolderPickerDialog(
+            guid = favoritePicker.guid,
+            profileName = favoritePicker.name,
+            folders = uiState.favoriteFolders,
+            onAction = onAction,
+            onDismiss = {
+                favoriteTarget = null
+                favoritePicker.tvOrigin()?.let { focusToRestore = it }
+            }
+        )
+    }
+    if (showFavoriteFolders) {
+        FavoriteFolderManagerDialog(
+            folders = uiState.favoriteFolders,
+            onAction = onAction,
+            onDismiss = {
+                showFavoriteFolders = false
+                focusToRestore = TvMainFocusTarget.Toolbar
+            }
+        )
+    }
+
     TvMainDialogs(
         shareQRCodeBitmap = uiState.shareQRCodeBitmap,
         selectedGuid = uiState.selectedGuid,
         onAction = onAction,
         onEdit = ::openEditor,
-        onRestoreFocus = { focusToRestore = it }
+        onRestoreFocus = { focusToRestore = it },
+        onFavorite = { guid, name, origin ->
+            favoriteTarget = FavoriteFolderTarget(guid, name, origin.guid, origin.action?.name)
+        }
     ) { dialogs ->
         TvMainNavigationDrawer(
             drawerState = drawerState,
@@ -202,7 +233,8 @@ internal fun TvMainScreen(
                         onOpenDrawer = { openDrawer(TvMainFocusTarget.Toolbar) },
                         onMoveDown = { selectedGroup?.let { focusGroupTab(it.id) } ?: false },
                         onAction = onAction,
-                        onBulkDelete = dialogs.bulkDelete
+                        onBulkDelete = dialogs.bulkDelete,
+                        onFavoriteFolders = { showFavoriteFolders = true }
                     )
                 },
                 bottomBar = {

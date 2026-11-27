@@ -25,7 +25,7 @@ internal data class ServerGroupUiState(
     val isFiltered: Boolean = false,
 ) {
     fun canReorder(groupId: String, searchQuery: String): Boolean =
-        groupId.isNotEmpty() && searchQuery.isEmpty() && !isFiltered
+        groupId.isNotEmpty() && !isFavoriteGroupId(groupId) && searchQuery.isEmpty() && !isFiltered
 
     fun moveServer(fromGuid: String, toGuid: String): ServerGroupUiState? {
         if (isFiltered) return null
@@ -57,19 +57,100 @@ internal fun buildServerRowUiModel(
     )
 }
 
+private val isoCountryCodes by lazy { Locale.getISOCountries().toSet() }
+private val whitespacePattern = Regex("\\s+")
+
+private fun countryNameKey(value: String): String {
+    val normalized = buildString(value.length) {
+        value.trim().lowercase(Locale.ROOT).forEach { letter ->
+            append(if (letter.isLetterOrDigit()) letter else ' ')
+        }
+    }.trim()
+    return whitespacePattern.replace(normalized, " ")
+}
+
+private val englishCountryNameToCode by lazy {
+    Locale.getISOCountries().associate { code ->
+        countryNameKey(Locale("", code).getDisplayCountry(Locale.ENGLISH)) to code
+    }.filterKeys { it.isNotEmpty() }
+}
+
+private val commonCountryNameAliases = mapOf(
+    "uk" to "GB",
+    "united kingdom of great britain and northern ireland" to "GB",
+    "united states of america" to "US",
+    "usa" to "US",
+    "south korea" to "KR",
+    "republic of korea" to "KR",
+    "north korea" to "KP",
+    "russia" to "RU",
+    "russian federation" to "RU",
+    "vietnam" to "VN",
+    "viet nam" to "VN",
+    "iran" to "IR",
+    "taiwan" to "TW",
+    "hong kong" to "HK",
+    "macao" to "MO",
+    "macau" to "MO",
+    "czech republic" to "CZ",
+    "the netherlands" to "NL",
+    "holland" to "NL",
+    "laos" to "LA",
+    "syria" to "SY",
+    "moldova" to "MD",
+    "tanzania" to "TZ",
+    "bolivia" to "BO",
+    "venezuela" to "VE",
+    "brunei" to "BN",
+    "cape verde" to "CV",
+    "swaziland" to "SZ",
+    "macedonia" to "MK",
+).mapKeys { (key, _) -> countryNameKey(key) }
+
 /**
- * Turns the raw country observed by the egress-IP probe into a label for the app locale.
- * A two-letter ISO code is localized (JP -> "Japan" / "日本"); any other non-empty value is
- * already a real name reported by the IP API and is kept as-is. Unknown codes fall back to the code.
+ * Resolves a real country name or ISO code reported by the egress-IP API to an ISO country code.
+ * Localized names from the app locale are supported (中国 -> CN), but an unrecognized value
+ * never gets a guessed flag.
+ */
+internal fun countryCodeForLabel(raw: String?, locale: Locale): String? {
+    val value = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+    val key = countryNameKey(value)
+    Locale.getISOCountries().firstOrNull { code ->
+        val display = Locale("", code).getDisplayCountry(locale)
+        countryNameKey(display) == key && !display.equals(code, ignoreCase = true)
+    }?.let { return it }
+    commonCountryNameAliases[key]?.let { return it }
+    englishCountryNameToCode[key]?.let { return it }
+    if (value.length == 2 && value.all { it in 'A'..'Z' || it in 'a'..'z' }) {
+        return value.uppercase(Locale.ROOT)
+    }
+    return null
+}
+
+/**
+ * Turns the raw country observed by the egress-IP probe into "flag + localized name".
+ * A known ISO code or country name becomes its regional-indicator flag plus a localized name
+ * (JP -> "🇯🇵 Japan" / "🇯🇵 日本"). Unrecognized values are kept as-is without a flag:
+ * the flag is never guessed from a server address.
  */
 internal fun formatTestCountry(raw: String?, locale: Locale): String? {
     val value = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-    if (value.length != 2 || !value.all { it.isLetter() }) {
-        return value
-    }
-    val code = value.uppercase(Locale.ROOT)
+    val code = countryCodeForLabel(value, locale) ?: return value
+    if (code !in isoCountryCodes) return value
     val display = Locale("", code).getDisplayCountry(locale)
-    return display.takeIf { it.isNotEmpty() && !it.equals(code, ignoreCase = true) } ?: code
+    val name = display.takeIf { it.isNotEmpty() && !it.equals(code, ignoreCase = true) } ?: return value
+    val flag = countryFlagEmoji(code) ?: return name
+    return "$flag $name"
+}
+
+/** Regional-indicator pair for an ISO 3166-1 alpha-2 code, e.g. JP -> 🇯🇵. */
+internal fun countryFlagEmoji(code: String): String? {
+    if (code.length != 2 || !code.all { it in 'A'..'Z' }) return null
+    return buildString {
+        code.forEach { letter ->
+            append(Character.toChars(0x1F1E6 + (letter - 'A')))
+        }
+    }
 }
 
 private fun serverProtocolDescription(profile: ProfileItem): String {

@@ -240,7 +240,7 @@ abstract class BaseMainActivity : HelperBaseComponentActivity() {
                 putExtra("createConfigType", createConfigType)
             }
         }.apply {
-            putExtra("subscriptionId", mainViewModel.uiState.value.selectedGroupId)
+            putExtra("subscriptionId", storageGroupId(mainViewModel.uiState.value.selectedGroupId))
         }
         profileEditorLauncher.launch(intent)
     }
@@ -295,7 +295,7 @@ abstract class BaseMainActivity : HelperBaseComponentActivity() {
             putExtra("guid", guid)
             putExtra("isRunning", mainViewModel.uiState.value.isRunning)
             putExtra("createConfigType", profile.configType.value)
-            putExtra("subscriptionId", mainViewModel.uiState.value.selectedGroupId)
+            putExtra("subscriptionId", storageGroupId(mainViewModel.uiState.value.selectedGroupId))
         }
         profileEditorLauncher.launch(intent)
     }

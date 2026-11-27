@@ -595,4 +595,15 @@
     <string name="action_more">More</string>
     <string name="action_clear">Clear</string>
     <string name="connection_connected_tv">Connected</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">Favorite folders</string>
+    <string name="favorite_folder_create">New folder</string>
+    <string name="favorite_folder_name">Folder name</string>
+    <string name="favorite_folder_rename">Rename folder</string>
+    <string name="favorite_folder_delete">Delete folder</string>
+    <string name="favorite_folder_delete_confirm">Delete folder “%1$s”? Profiles in it are not deleted.</string>
+    <string name="favorite_folder_empty">No favorite folders yet. Create one to group your nodes.</string>
+    <string name="favorite_add_to_folder">Add to favorite folder</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

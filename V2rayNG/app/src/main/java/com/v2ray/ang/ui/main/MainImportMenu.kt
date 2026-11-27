@@ -37,7 +37,8 @@ enum class MainMoreMenuAction(@StringRes val labelRes: Int) {
     SortByTestResults(R.string.title_sort_by_test_results),
     TestAll(R.string.title_ping_all_server),
     TestAllRealPing(R.string.title_real_ping_all_server),
-    UpdateSubscriptions(R.string.title_sub_update)
+    UpdateSubscriptions(R.string.title_sub_update),
+    FavoriteFolders(R.string.favorite_folders)
 }
 
 internal enum class ServerMenuAction(
@@ -48,6 +49,8 @@ internal enum class ServerMenuAction(
     ShareQRCode(R.string.share_method_qrcode, isShareAction = true, supportsComplexProfiles = false),
     ShareClipboard(R.string.share_method_clipboard, isShareAction = true, supportsComplexProfiles = false),
     ShareFullContent(R.string.share_method_full_content, isShareAction = true, supportsComplexProfiles = true),
+    // The single-column row exposes only its share menu, so favorite assignment is available there too.
+    Favorite(R.string.favorite_add_to_folder, isShareAction = true, supportsComplexProfiles = true),
     Edit(R.string.action_edit, isShareAction = false, supportsComplexProfiles = true),
     Delete(R.string.action_delete, isShareAction = false, supportsComplexProfiles = true),
 }
@@ -81,6 +84,7 @@ fun ShareMethodDialog(
     onDismiss: () -> Unit,
     onAction: (MainAction) -> Unit,
     onRemove: (String, String) -> Unit,
+    onFavorite: (String, String) -> Unit = { _, _ -> },
 ) {
     val menuActions = serverMenuActions(
         isComplexProfile = profile.configType.isComplexType(),
@@ -91,17 +95,24 @@ fun ShareMethodDialog(
         optionText = { stringResource(it.labelRes) },
         onSelected = { action ->
             onDismiss()
-            action.dispatch(guid, profile, onAction, onRemove)
+            action.dispatch(guid, profile, onAction, onRemove, onFavorite)
         },
         onDismiss = onDismiss
     )
 }
 
-internal fun ServerMenuAction.dispatch(guid: String, profile: ProfileItem, onAction: (MainAction) -> Unit, onRemove: (String, String) -> Unit) {
+internal fun ServerMenuAction.dispatch(
+    guid: String,
+    profile: ProfileItem,
+    onAction: (MainAction) -> Unit,
+    onRemove: (String, String) -> Unit,
+    onFavorite: (String, String) -> Unit = { _, _ -> },
+) {
     when (this) {
         ServerMenuAction.ShareQRCode -> onAction(MainAction.ShareQRCode(guid))
         ServerMenuAction.ShareClipboard -> onAction(MainAction.ShareClipboard(guid))
         ServerMenuAction.ShareFullContent -> onAction(MainAction.ShareFullContent(guid))
+        ServerMenuAction.Favorite -> onFavorite(guid, profile.remarks)
         ServerMenuAction.Edit -> onAction(MainAction.EditServer(guid, profile))
         ServerMenuAction.Delete -> onRemove(guid, profile.remarks)
     }

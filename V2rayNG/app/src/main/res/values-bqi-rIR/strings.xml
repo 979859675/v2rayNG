@@ -594,4 +594,15 @@
     <string name="action_more">بیشتر</string>
     <string name="action_clear">پاک کردن</string>
     <string name="connection_connected_tv">منپیز هڌ</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">پوشه‌های پسندیده</string>
+    <string name="favorite_folder_create">پوشه نو</string>
+    <string name="favorite_folder_name">نام پوشه</string>
+    <string name="favorite_folder_rename">تغییر نام پوشه</string>
+    <string name="favorite_folder_delete">پاک کردن پوشه</string>
+    <string name="favorite_folder_delete_confirm">پوشه «%1$s» پاک شود؟ نودهای درونش پاک نبون.</string>
+    <string name="favorite_folder_empty">هلا هیچ پوشه پسندیده‌ای نیس. یه پوشه بساز تا نودهات رو گروه کنی.</string>
+    <string name="favorite_add_to_folder">افزودن به پوشه پسندیده</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

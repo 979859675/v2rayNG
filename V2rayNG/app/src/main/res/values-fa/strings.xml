@@ -594,4 +594,15 @@
     <string name="action_more">بیشتر</string>
     <string name="action_clear">پاک کردن</string>
     <string name="connection_connected_tv">متصل است</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">پوشه‌های مورد علاقه</string>
+    <string name="favorite_folder_create">پوشه جدید</string>
+    <string name="favorite_folder_name">نام پوشه</string>
+    <string name="favorite_folder_rename">تغییر نام پوشه</string>
+    <string name="favorite_folder_delete">حذف پوشه</string>
+    <string name="favorite_folder_delete_confirm">پوشه «%1$s» حذف شود؟ گره‌های درون آن حذف نمی‌شوند.</string>
+    <string name="favorite_folder_empty">هنوز پوشه مورد علاقه‌ای وجود ندارد. برای گروه‌بندی گره‌ها پوشه‌ای بسازید.</string>
+    <string name="favorite_add_to_folder">افزودن به پوشه مورد علاقه</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

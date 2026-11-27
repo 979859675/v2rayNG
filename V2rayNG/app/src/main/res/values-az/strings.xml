@@ -596,4 +596,15 @@
     <string name="action_more">Daha çox</string>
     <string name="action_clear">Təmizlə</string>
     <string name="connection_connected_tv">Qoşuldu</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">Sevimli qovluqlar</string>
+    <string name="favorite_folder_create">Yeni qovluq</string>
+    <string name="favorite_folder_name">Qovluq adı</string>
+    <string name="favorite_folder_rename">Qovluğun adını dəyiş</string>
+    <string name="favorite_folder_delete">Qovluğu sil</string>
+    <string name="favorite_folder_delete_confirm">«%1$s» qovluğunu sil? İçindəki profillər silinməyəcək.</string>
+    <string name="favorite_folder_empty">Hələ sevimli qovluq yoxdur. Nodları qruplaşdırmaq üçün bir qovluq yaradın.</string>
+    <string name="favorite_add_to_folder">Sevimli qovluğa əlavə et</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>

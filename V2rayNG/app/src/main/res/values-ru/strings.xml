@@ -598,4 +598,15 @@
     <string name="action_more">Ещё</string>
     <string name="action_clear">Очистить</string>
     <string name="connection_connected_tv">Соединено</string>
+
+    <!-- User-created favorite folders -->
+    <string name="favorite_folders">Избранные папки</string>
+    <string name="favorite_folder_create">Новая папка</string>
+    <string name="favorite_folder_name">Имя папки</string>
+    <string name="favorite_folder_rename">Переименовать папку</string>
+    <string name="favorite_folder_delete">Удалить папку</string>
+    <string name="favorite_folder_delete_confirm">Удалить папку «%1$s»? Узлы внутри не будут удалены.</string>
+    <string name="favorite_folder_empty">Избранных папок пока нет. Создайте папку для группировки узлов.</string>
+    <string name="favorite_add_to_folder">Добавить в избранную папку</string>
+    <string name="favorite_folder_tab">★ %1$s</string>
 </resources>
