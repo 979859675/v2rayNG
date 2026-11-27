@@ -45,8 +45,10 @@ import com.v2ray.ang.ui.compose.NavigationBarsSpacer
 import com.v2ray.ang.ui.compose.SelectListDialog
 import com.v2ray.ang.ui.compose.SettingsMenuItem
 import com.v2ray.ang.util.LogUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -132,17 +134,31 @@ class BackupActivity : HelperBaseComponentActivity() {
     }
 
     private fun handleExportLocal(cachePath: String, targetUri: Uri) {
-        try {
-            contentResolver.openOutputStream(targetUri)?.use { output ->
-                File(cachePath).inputStream().use { input ->
-                    input.copyTo(output)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val cacheFile = File(cachePath)
+            try {
+                val output = contentResolver.openOutputStream(targetUri)
+                    ?: throw IllegalStateException("Unable to open backup output stream")
+                output.use { outputStream ->
+                    cacheFile.inputStream().use { input ->
+                        input.copyTo(outputStream)
+                    }
                 }
+                withContext(Dispatchers.Main.immediate) {
+                    toastSuccess(R.string.backup_export_success)
+                }
+            } catch (e: Exception) {
+                LogUtil.e(
+                    AppConfig.TAG,
+                    "Local backup export failed for document ${targetUri.lastPathSegment.orEmpty()}",
+                    e
+                )
+                withContext(Dispatchers.Main.immediate) {
+                    toastError(R.string.toast_failure)
+                }
+            } finally {
+                cacheFile.delete()
             }
-            File(cachePath).delete()
-            toastSuccess(R.string.toast_success)
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "Failed to copy backup to Uri", e)
-            toastError(R.string.toast_failure)
         }
     }
 

@@ -613,4 +613,7 @@
     <string name="favorite_folder_empty">لا توجد مجلدات مفضلة بعد. أنشئ مجلدًا لتجميع العقد.</string>
     <string name="favorite_add_to_folder">إضافة إلى مجلد مفضل</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">تم تصدير النسخة الاحتياطية بنجاح</string>
 </resources>

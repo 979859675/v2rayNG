@@ -609,4 +609,7 @@
     <string name="favorite_folder_empty">Избранных папок пока нет. Создайте папку для группировки узлов.</string>
     <string name="favorite_add_to_folder">Добавить в избранную папку</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">Резервная копия успешно экспортирована</string>
 </resources>

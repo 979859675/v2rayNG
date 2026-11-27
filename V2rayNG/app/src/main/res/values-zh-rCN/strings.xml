@@ -603,4 +603,7 @@
     <string name="favorite_folder_empty">还没有收藏夹。新建一个来分组节点。</string>
     <string name="favorite_add_to_folder">添加到收藏夹</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">备份导出成功</string>
 </resources>

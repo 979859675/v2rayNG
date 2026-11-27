@@ -606,4 +606,7 @@
     <string name="favorite_folder_empty">No favorite folders yet. Create one to group your nodes.</string>
     <string name="favorite_add_to_folder">Add to favorite folder</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">Backup exported successfully</string>
 </resources>

@@ -607,4 +607,7 @@
     <string name="favorite_folder_empty">Hələ sevimli qovluq yoxdur. Nodları qruplaşdırmaq üçün bir qovluq yaradın.</string>
     <string name="favorite_add_to_folder">Sevimli qovluğa əlavə et</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">Yedək faylı uğurla ixrac edildi</string>
 </resources>

@@ -1,8 +1,8 @@
 package com.v2ray.ang.handler
 
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 
 enum class AppNotificationType {
     NORMAL, SUCCESS, ERROR, INFO
@@ -24,20 +24,31 @@ data class AppNotificationData(
     val durationMs: Long = calculateNotificationDuration(message)
 )
 
-object AppNotificationManager {
-    private val _notifications = MutableSharedFlow<AppNotificationData>(
-        replay = 0,
-        extraBufferCapacity = 16,
+private const val MaxQueuedNotifications = 16
+
+/**
+ * Per-instance notification queue. Production uses the [AppNotificationManager] singleton;
+ * JVM tests create a separate queue so queued events never touch the global UI stream.
+ *
+ * Android activity-result callbacks such as Storage Access Framework can run while an activity
+ * is STARTED, before the global notification bridge resumes collection. The buffered Channel
+ * prevents a success toast emitted in that gap from being dropped, without replaying an
+ * already-consumed message to a later activity. Remove the buffering only if the bridge begins
+ * collecting at STARTED and can safely render the popup before RESUMED.
+ */
+open class AppNotificationQueue {
+    private val _notifications = Channel<AppNotificationData>(
+        capacity = MaxQueuedNotifications,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
-    val notifications = _notifications.asSharedFlow()
+    val notifications = _notifications.receiveAsFlow()
 
     fun show(
         message: CharSequence,
         type: AppNotificationType = AppNotificationType.NORMAL,
         durationMs: Long = calculateNotificationDuration(message)
     ) {
-        _notifications.tryEmit(
+        _notifications.trySend(
             AppNotificationData(
                 message = message,
                 type = type,
@@ -46,3 +57,5 @@ object AppNotificationManager {
         )
     }
 }
+
+object AppNotificationManager : AppNotificationQueue()

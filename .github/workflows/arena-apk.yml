@@ -65,6 +65,10 @@ jobs:
           cd V2rayNG
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           chmod +x gradlew
+          ./gradlew :app:testPlaystoreDebugUnitTest \
+            --tests 'com.v2ray.ang.handler.AppNotificationQueueTest' \
+            --tests 'com.v2ray.ang.ui.backup.BackupViewModelLogicTest' \
+            --stacktrace
           ./gradlew :app:testPlaystoreDebugUnitTest :app:compilePlaystoreDebugKotlin --stacktrace
 
       - name: Build debug APK

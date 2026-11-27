@@ -605,4 +605,7 @@
     <string name="favorite_folder_empty">هلا هیچ پوشه پسندیده‌ای نیس. یه پوشه بساز تا نودهات رو گروه کنی.</string>
     <string name="favorite_add_to_folder">افزودن به پوشه پسندیده</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">پشتیبان با موفقیت صادر شد</string>
 </resources>

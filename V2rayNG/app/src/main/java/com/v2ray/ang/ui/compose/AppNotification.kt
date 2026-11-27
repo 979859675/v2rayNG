@@ -54,9 +54,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.v2ray.ang.extension.delay
 import com.v2ray.ang.handler.AppNotificationData
 import com.v2ray.ang.handler.AppNotificationManager
+import com.v2ray.ang.handler.AppNotificationQueue
 import com.v2ray.ang.handler.AppNotificationType
 
-val LocalAppNotification = staticCompositionLocalOf<AppNotificationManager> {
+val LocalAppNotification = staticCompositionLocalOf<AppNotificationQueue> {
     AppNotificationManager
 }
 
@@ -73,12 +74,13 @@ private val GlobalNotificationPosition = InternalNotificationPosition.BOTTOM
 @Composable
 fun AppNotificationBridge() {
     val lifecycleOwner = LocalLifecycleOwner.current
+    val notificationManager = LocalAppNotification.current
     val queue = remember { mutableStateListOf<AppNotificationData>() }
     var currentData by remember { mutableStateOf<AppNotificationData?>(null) }
 
-    LaunchedEffect(lifecycleOwner) {
+    LaunchedEffect(lifecycleOwner, notificationManager) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            AppNotificationManager.notifications.collect { data ->
+            notificationManager.notifications.collect { data ->
                 if (queue.size >= MaxNotificationQueueSize) {
                     queue.removeAt(0)
                 }

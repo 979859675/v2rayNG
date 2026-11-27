@@ -22,6 +22,17 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+/** Pure result mapping for MMKV backup count and zip creation, exercised by JVM tests. */
+internal fun backupFileResult(
+    backupCount: Int,
+    zipCreated: Boolean,
+    zipPath: String,
+): Pair<Boolean, String> = if (backupCount > 0 && zipCreated) {
+    Pair(true, zipPath)
+} else {
+    Pair(false, "")
+}
+
 class BackupViewModel(application: Application) : BaseViewModel(application) {
 
     private val _webDavConfig = MutableStateFlow(MmkvManager.decodeWebDavConfig())
@@ -118,7 +129,7 @@ class BackupViewModel(application: Application) : BaseViewModel(application) {
                 }
 
                 if (ok) {
-                    toastSuccess(R.string.toast_success)
+                    toastSuccess(R.string.backup_export_success)
                 } else {
                     toastError(R.string.toast_failure)
                 }
@@ -126,7 +137,7 @@ class BackupViewModel(application: Application) : BaseViewModel(application) {
                 LogUtil.e(AppConfig.TAG, "WebDAV backup error", e)
                 toastError(R.string.toast_failure)
             } finally {
-                tempFile?.delete()
+                tempFile?.let { file -> withContext(Dispatchers.IO) { file.delete() } }
             }
         }
     }
@@ -164,26 +175,20 @@ class BackupViewModel(application: Application) : BaseViewModel(application) {
         }
     }
 
-    private fun backupConfigurationToCache(cacheDir: File, appName: String): Pair<Boolean, String> {
-        val dateFormatted = SimpleDateFormat(
-            "yyyy-MM-dd-HH-mm-ss",
-            Locale.getDefault()
-        ).format(System.currentTimeMillis())
-        val folderName = "${appName}_$dateFormatted"
-        val backupDir = cacheDir.absolutePath + "/$folderName"
-        val outputZipFilePath = "${cacheDir.absolutePath}/$folderName.zip"
+    private suspend fun backupConfigurationToCache(cacheDir: File, appName: String): Pair<Boolean, String> =
+        withContext(Dispatchers.IO) {
+            val dateFormatted = SimpleDateFormat(
+                "yyyy-MM-dd-HH-mm-ss",
+                Locale.getDefault()
+            ).format(System.currentTimeMillis())
+            val folderName = "${appName}_$dateFormatted"
+            val backupDir = cacheDir.absolutePath + "/$folderName"
+            val outputZipFilePath = "${cacheDir.absolutePath}/$folderName.zip"
 
-        val count = MMKV.backupAllToDirectory(backupDir)
-        if (count <= 0) {
-            return Pair(false, "")
+            val count = MMKV.backupAllToDirectory(backupDir)
+            val zipCreated = count > 0 && ZipUtil.zipFromFolder(backupDir, outputZipFilePath)
+            backupFileResult(count, zipCreated, outputZipFilePath)
         }
-
-        return if (ZipUtil.zipFromFolder(backupDir, outputZipFilePath)) {
-            Pair(true, outputZipFilePath)
-        } else {
-            Pair(false, "")
-        }
-    }
 
     private suspend fun performRestore(cacheDir: File, zipFile: File): Boolean =
         withContext(Dispatchers.IO) {

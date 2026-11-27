@@ -605,4 +605,7 @@
     <string name="favorite_folder_empty">هنوز پوشه مورد علاقه‌ای وجود ندارد. برای گروه‌بندی گره‌ها پوشه‌ای بسازید.</string>
     <string name="favorite_add_to_folder">افزودن به پوشه مورد علاقه</string>
     <string name="favorite_folder_tab">★ %1$s</string>
+
+    <!-- Backup export feedback -->
+    <string name="backup_export_success">پشتیبان با موفقیت صادر شد</string>
 </resources>
